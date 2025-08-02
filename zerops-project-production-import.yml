@@ -61,7 +61,7 @@ services:
 
   - hostname: api
     type: python@3.11
-    buildFromGit: https://github.com/fxck/zerops-rag-starter
+    buildFromGit: https://github.com/zeropsio/recipe-rag-starter
     enableSubdomainAccess: true
     minContainers: 2
     envSecrets:
@@ -70,10 +70,10 @@ services:
 
   - hostname: processor
     type: python@3.11
-    buildFromGit: https://github.com/fxck/zerops-rag-starter
+    buildFromGit: https://github.com/zeropsio/recipe-rag-starter
     minContainers: 2
 
   - hostname: dashboard
     type: static
-    buildFromGit: https://github.com/fxck/zerops-rag-starter
+    buildFromGit: https://github.com/zeropsio/recipe-rag-starter
     enableSubdomainAccess: true
