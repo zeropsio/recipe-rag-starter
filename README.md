@@ -1,165 +1,171 @@
-# Zerops RAG Infrastructure Starter
+# Zerops RAG Infrastructure Example
 
-A working example of multi-service architecture for document search applications on [Zerops](https://zerops.io). This starter provides all the infrastructure you need for a RAG application, with simplified AI logic that you'll replace with your own implementation.
+A **hello-world demonstration** showing how [Zerops](https://zerops.io) handles the infrastructure complexity of RAG (Retrieval Augmented Generation) applications — so you can see how to integrate it into your own projects.
 
 [![Deploy to Zerops](https://github.com/zeropsio/recipe-shared-assets/blob/main/deploy-button/green/deploy-button.svg)](https://app.zerops.io/recipe/rag-starter)
 
-## What This Is
+## What This Is (And Isn't)
 
-This is a "hello-world" complexity app that demonstrates how Zerops handles the infrastructure complexity of AI/LLM applications. It provides:
+**This is**: A minimal example demonstrating Zerops' capabilities for AI/LLM infrastructure  
+**This isn't**: A RAG starter template or production-ready application
 
-- **Complete working infrastructure**: 8 interconnected services deployed and configured
-- **Simplified AI logic**: Basic placeholders you'll replace with your actual implementation  
-- **Production patterns**: Async processing, caching, service discovery - all handled by Zerops
-- **Zero DevOps required**: Zerops manages the infrastructure, you focus on your app
+We intentionally kept the AI logic dummy-simple (first 500 chars, fake embeddings) to focus on what matters: **showing how Zerops eliminates DevOps complexity**.
 
-## Why This Starter?
+## The Infrastructure Challenge
 
-Building RAG applications requires complex infrastructure:
-- **Vector database** for embeddings (Qdrant)
-- **Relational database** for metadata (PostgreSQL) 
-- **Key-value cache** (Valkey/Redis)
-- **Message queue** for async processing (NATS)
-- **Object storage** for documents (S3-compatible)
-- **API service** (FastAPI)
-- **Background workers**
-- **Web dashboard**
+Modern RAG applications need:
+- Vector database (Qdrant)
+- Relational database (PostgreSQL)  
+- Caching layer (Valkey/Redis)
+- Message queue (NATS)
+- Object storage (S3-compatible)
+- API service + Workers
+- Load balancing, SSL, scaling, monitoring...
 
-Without DevOps knowledge, this is overwhelming. With DevOps knowledge, it's time-consuming. Zerops handles all of this - deploy with one click, focus on your AI logic.
+Setting this up traditionally requires extensive DevOps knowledge. With Zerops, it's just YAML configuration.
 
-## Architecture
+## What This Example Shows
+
+### 1. One-Click Infrastructure
+
+Deploy 8 interconnected services in 60 seconds:
 
 ```
-Upload → API → S3 Storage
-           ↓
-         NATS Queue
-           ↓
-     Background Worker → Qdrant (vectors)
-           ↓                ↑
-      PostgreSQL        Search API
-      (metadata)       (with Redis cache)
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Qdrant    │     │ PostgreSQL  │     │   Valkey    │
+│ (vectors)   │     │ (metadata)  │     │  (cache)    │
+└─────────────┘     └─────────────┘     └─────────────┘
+       ↑                    ↑                    ↑
+       └────────────────────┼────────────────────┘
+                           │
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│  FastAPI    │────▶│    NATS     │────▶│   Worker    │
+│   (API)     │     │  (queue)    │     │ (processor) │
+└─────────────┘     └─────────────┘     └─────────────┘
+       ↑                                         │
+       │                                         ▼
+┌─────────────┐                         ┌─────────────┐
+│  Dashboard  │                         │     S3      │
+│   (web)     │                         │  (storage)  │
+└─────────────┘                         └─────────────┘
 ```
 
-## What Zerops Handles For You
+### 2. Service Auto-Configuration
 
-- ✅ **Service orchestration**: All 8 services configured and networked
-- ✅ **Automatic scaling**: Both horizontal and vertical, based on load
-- ✅ **Service discovery**: Connection strings auto-injected as env vars
-- ✅ **Build & deploy pipeline**: Zero-downtime deployments from Git
-- ✅ **High availability**: Optional HA mode for all services
-- ✅ **Networking**: Private network with L3/L7 load balancers
-- ✅ **SSL/TLS**: Automatic certificate management
-- ✅ **Monitoring**: Logs, metrics, and health checks
-- ✅ **Developer experience**: VPN access, web terminal, one-click rollbacks
-
-## What You Build
-
-| Provided (Working Demo) | Your Implementation |
-|------------------------|-------------------|
-| First 500 chars of files | Real PDF/DOCX parsing with libraries of your choice |
-| Basic sentence transformer | Your embedding model (OpenAI, Cohere, custom) |
-| Dummy search vectors | Actual query embedding logic |
-| No text chunking | Your chunking strategy |
-| No LLM integration | Your choice of LLM (OpenAI, Anthropic, Llama, etc) |
-
-## Quick Start
-
-### Deploy to Zerops (Recommended)
-Click the deploy button. In 60 seconds, your complete infrastructure is running.
-
-### Local Development
-
-Zerops enables true hybrid development - run your code locally while using cloud services:
-
-```bash
-# Connect to your Zerops project's private network
-zcli vpn up
-
-# Download all service connection strings as env vars
-cd api && zcli env > .env
-
-# Install and run locally
-uv venv && uv pip install -r requirements.txt
-uv run uvicorn main:app --reload
-```
-
-Your local API now connects to Zerops-hosted databases and services.
-
-## Service Connections
-
-Zerops automatically provides connection details as environment variables:
+See how Zerops automatically wires services together using environment variables:
 
 ```python
-# PostgreSQL - Zerops provides DB_HOST, DB_USER, DB_PASSWORD
+# PostgreSQL connection - no manual config needed
 db_pool = await asyncpg.create_pool(
-    host=os.getenv("DB_HOST"),
-    password=os.getenv("DB_PASSWORD")
+    host=os.getenv("DB_HOST"),  # Zerops provides this
+    password=os.getenv("DB_PASSWORD")  # And this
 )
 
-# Redis - Zerops provides REDIS_HOST
-redis_client = redis.Redis(host=os.getenv("REDIS_HOST"))
-
-# S3 - Zerops provides AWS_ENDPOINT, AWS_ACCESS_KEY_ID
-s3 = boto3.client('s3', endpoint_url=os.getenv("AWS_ENDPOINT"))
-
-# NATS - Zerops provides NATS_URL, NATS_USER, NATS_PASSWORD  
-nc = await nats.connect(os.getenv("NATS_URL"))
-
-# Qdrant - Zerops provides QDRANT_URL, QDRANT_API_KEY
+# Same for Redis, S3, NATS, Qdrant...
 ```
 
-No manual configuration needed - Zerops handles service discovery.
+### 3. Build & Deploy Pipeline
 
-## Integration Points
+The [`zerops.yml`](./zerops.yml) shows how to:
+- Define build and runtime environments
+- Configure auto-scaling
+- Set up zero-downtime deployments
 
-Replace the demo code with your implementation:
+### 4. Development Workflow
 
-| File | Line | Current Demo | Your Code |
-|------|------|--------------|-----------|
-| `processor/processor.py:79` | Text extraction | `content[:500]` | PDF parsing library |
-| `processor/processor.py:83` | Embeddings | `all-MiniLM-L6-v2` | Your embedding model |
-| `api/main.py:195` | Query vectors | `[0.1] * 384` | Real query embeddings |
-| New endpoint | Generation | None | LLM completion endpoint |
+Local development using cloud services:
 
-## Production vs Development
+```bash
+# Connect to project's private network
+zcli vpn up
 
-Zerops ensures complete environment parity:
+# Get all service credentials
+zcli env --dotenv > .env
 
-- **Same infrastructure**: Dev and prod use identical service setup
-- **Different resources**: Dev uses minimal resources, prod scales up
-- **Same deployment**: Both use identical `zerops.yml` configuration
-- **Cost-efficient**: Dev ~$10/mo, Production ~$30/mo with HA
-
-## Project Structure
-
-```
-api/          # FastAPI service
-processor/    # Document processing worker
-dashboard/    # Web UI
-zerops.yml    # Defines build & deploy for all services
+# Your local code now uses Zerops databases
 ```
 
-## Scaling Without Complexity
+### 5. Production Patterns
 
-Zerops handles scaling automatically:
-- Workers scale from 0.125GB to 48GB RAM as needed
-- API scales horizontally based on requests
-- Databases run in HA mode across availability zones
-- Pay per minute for actual usage
+- Async processing with queues
+- Caching strategies  
+- Service discovery
+- High availability options
 
-## Cost
+## Quick Demo
 
-- **Development**: ~$10/month (or ~$2/month for 8-hour workdays)
-- **Production**: ~$30/month for full HA setup
-- **2-3x cheaper** than comparable PaaS platforms
-- **Transparent**: Per-minute billing, no hidden costs
+1. **Deploy**: Click the button above (60 seconds)
+2. **Upload**: Try uploading a document via the dashboard
+3. **Search**: See how the services interact
+4. **Explore**: Check logs, metrics, and service details in Zerops dashboard
+
+## Key Files to Examine
+
+| File | What It Demonstrates |
+|------|---------------------|
+| [`zerops-project-import.yml`](./zerops-project-import.yml) | Development environment setup |
+| [`zerops-project-production-import.yml`](./zerops-project-production-import.yml) | Production HA configuration |
+| [`zerops.yml`](./zerops.yml) | Build & deploy pipeline |
+| [`api/main.py`](./api/main.py) | Service integration patterns |
+
+## Understanding the Integration
+
+### Project Import Structure
+
+```yaml
+project:
+  name: rag-demo
+  envVariables:
+    # Zerops auto-references service credentials
+    DB_HOST: ${db_hostname}
+    QDRANT_URL: ${qdrant_connectionString}
+    # ... automatic for all services
+
+services:
+  - hostname: db
+    type: postgresql@16
+    mode: HA  # or NON_HA
+```
+
+### Build Configuration
+
+```yaml
+# From zerops.yml
+- setup: api
+  build:
+    deployFiles: ./api/~
+  run:
+    base: python@3.11
+    ports:
+      - port: 8000
+        httpSupport: true
+```
+
+## Cost Example
+
+- **Development** (non-HA): ~$10/month
+- **Production** (full HA): ~$30/month
+- **Scaling**: Pay per minute for actual usage
+
+2-3x cheaper than comparable platforms, with no seat limits or tier restrictions.
+
+## The Zerops Advantage
+
+This example demonstrates how Zerops provides:
+
+✅ **Complete infrastructure** in one YAML file  
+✅ **Automatic service wiring** via environment variables  
+✅ **Built-in CI/CD** with zero-downtime deploys  
+✅ **Development/production parity** with different resource allocations  
+✅ **No DevOps required** — focus on your application logic  
 
 ## Learn More
 
-- [Building RAG apps on Zerops - Full Tutorial](https://blog.zerops.io/posts/perfect-platform-for-ai-llm-apps)
-- [Zerops Documentation](https://docs.zerops.io)
-- [Discord Community](https://discord.gg/zerops)
+- **Full Article**: [The Perfect Cloud Platform for Development and Production of AI/LLM Apps](https://blog.zerops.io/posts/the-perfect-cloud-platform-for-development-and-production-of-ai-llm-apps)
+- **Documentation**: [Zerops Docs](https://docs.zerops.io)
+- **YAML Specification**: [zerops.yml Reference](https://docs.zerops.io/zerops-yaml/specification)
+- **Community**: [Discord](https://discord.gg/zeropsio)
 
 ---
 
-Built for [Zerops](https://zerops.io) — focus on your app, not the infrastructure.
+This example shows how Zerops handles infrastructure complexity. Use these patterns in your own RAG applications to eliminate DevOps overhead and focus on building your AI features.

@@ -1,5 +1,7 @@
 project:
-  name: zerops-rag-starter
+  name: rag-prod
+  # enable when you have credits
+  # corePackage: SERIOUS
   envVariables:
     # PostgreSQL connection
     DB_HOST: ${db_hostname}
@@ -33,22 +35,22 @@ project:
 services:
   - hostname: db
     type: postgresql@16
-    mode: NON_HA
+    mode: HA
     priority: 100
 
   - hostname: cache
     type: valkey@7.2
-    mode: NON_HA
+    mode: HA
     priority: 100
 
   - hostname: queue
     type: nats@2.10
-    mode: NON_HA
+    mode: HA
     priority: 100
 
   - hostname: qdrant
     type: qdrant@1.12
-    mode: NON_HA
+    mode: HA
     priority: 100
 
   - hostname: storage
@@ -61,8 +63,7 @@ services:
     type: python@3.11
     buildFromGit: https://github.com/fxck/zerops-rag-starter
     enableSubdomainAccess: true
-    minContainers: 1
-    maxContainers: 1
+    minContainers: 2
     envSecrets:
       WORKERS: "1"
     priority: 50
@@ -70,8 +71,7 @@ services:
   - hostname: processor
     type: python@3.11
     buildFromGit: https://github.com/fxck/zerops-rag-starter
-    minContainers: 1
-    maxContainers: 1
+    minContainers: 2
 
   - hostname: dashboard
     type: static
