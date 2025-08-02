@@ -1,0 +1,54 @@
+zerops:
+  - setup: api
+    build:
+      deployFiles: ./api/~
+      addToRunPrepare:
+        - ./api/requirements.txt
+    run:
+      base: python@3.11
+      ports:
+        - port: 8000
+          httpSupport: true
+      prepareCommands:
+        - sudo uv pip install --system -r ./api/requirements.txt
+      initCommands:
+        - |
+          zsc execOnce qdrant-init -- curl -X PUT \
+            "${QDRANT_URL}/collections/documents" \
+            -H "api-key: ${QDRANT_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "vectors": {
+                "size": 384,
+                "distance": "Cosine"
+              }
+            }'
+      start: gunicorn main:app --bind 0.0.0.0:8000 --workers ${WORKERS:-1} --worker-class uvicorn.workers.UvicornWorker
+
+  - setup: processor
+    build:
+      deployFiles: ./processor/~
+      addToRunPrepare:
+        - ./processor/requirements.txt
+    run:
+      os: ubuntu
+      base: python@3.11
+      prepareCommands:
+        - echo "System info:" && uname -a && python3 --version && pip --version
+        - sudo apt-get update && sudo apt-get install -y build-essential
+        - sudo uv pip install --system -r ./processor/requirements.txt
+        - sudo uv pip install --system torch --index-url https://download.pytorch.org/whl/cpu --upgrade
+      start: python processor.py
+
+  - setup: dashboard
+    build:
+      deployFiles:
+        - ./dashboard/~
+    run:
+      base: static
+      envReplace:
+        target: index.html
+        delimiter: "##"
+      envVariables:
+        API_URL: ${api_zeropsSubdomain}
+
