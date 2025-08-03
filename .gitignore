@@ -2,3 +2,5 @@
 .env
 .venv
 __pycache__
+.zcli.yml
+.zcli.yaml

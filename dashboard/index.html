@@ -11,6 +11,26 @@
     <div x-data="app()" class="max-w-6xl mx-auto p-6">
         <h1 class="text-3xl font-bold mb-8">🌱 ESG RAG Hello World</h1>
 
+        <!-- Ecosystem Overview -->
+        <div class="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-3">🚀 Zerops Ecosystem in Action</h2>
+            <p class="text-gray-700 mb-4">This demo showcases a complete document processing pipeline using:</p>
+            <div class="grid md:grid-cols-3 gap-3 text-sm">
+                <div class="bg-white/80 rounded p-3">
+                    <strong class="block text-blue-600">Storage & Processing</strong>
+                    <span class="text-gray-600">S3-compatible storage + async processing</span>
+                </div>
+                <div class="bg-white/80 rounded p-3">
+                    <strong class="block text-green-600">Vector Search</strong>
+                    <span class="text-gray-600">Qdrant for semantic search capabilities</span>
+                </div>
+                <div class="bg-white/80 rounded p-3">
+                    <strong class="block text-purple-600">Data Layer</strong>
+                    <span class="text-gray-600">PostgreSQL + Redis + NATS messaging</span>
+                </div>
+            </div>
+        </div>
+
         <!-- Status Section -->
         <div class="bg-white rounded-lg shadow p-6 mb-6">
             <h2 class="text-xl font-semibold mb-4">System Status</h2>
@@ -84,6 +104,43 @@
                 </div>
             </template>
         </div>
+
+        <!-- Workflow Visualization -->
+        <div class="bg-white rounded-lg shadow p-6 mt-6">
+            <h3 class="text-xl font-semibold mb-4">📊 Processing Workflow</h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex items-center">
+                    <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mr-3">1</span>
+                    <div>
+                        <strong>Upload</strong> - Files are stored in S3-compatible object storage
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold mr-3">2</span>
+                    <div>
+                        <strong>Queue</strong> - NATS messaging queues documents for processing
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold mr-3">3</span>
+                    <div>
+                        <strong>Process</strong> - Document processor extracts text and generates embeddings
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold mr-3">4</span>
+                    <div>
+                        <strong>Index</strong> - Vectors stored in Qdrant for semantic search
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold mr-3">5</span>
+                    <div>
+                        <strong>Cache</strong> - Redis caches search results for performance
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -97,6 +154,15 @@
                 results: [],
                 documents: [],
                 apiUrl: '##API_URL##',
+
+                downloadExample() {
+                    const link = document.createElement('a');
+                    link.href = 'esg-compliance-policy-example.txt';
+                    link.download = 'esg-compliance-policy-example.txt';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
 
                 async init() {
                     await this.checkStatus();

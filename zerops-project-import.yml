@@ -70,6 +70,7 @@ services:
     type: python@3.11
     buildFromGit: https://github.com/zeropsio/recipe-rag-starter
     maxContainers: 1
+    priority: 50
 
   - hostname: dashboard
     type: static
